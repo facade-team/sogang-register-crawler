@@ -12,8 +12,8 @@
 * SQLAlchemy
   * MySQL 서버와 파이썬 코드 연결
 
-# 📃 Process
-- 
+# 📃 Console Log
+![crawler_1](./crawler_1.png)
 
 # 📞 Contact us
 - 김승우 : seungwookim99
