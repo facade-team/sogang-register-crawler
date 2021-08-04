@@ -12,6 +12,7 @@ from sqlalchemy import create_engine
 from bot.util.xpaths import searchOption, contentTable, contentTableBodyId
 from bot.util.columns import columns
 from bot.util.departments import departments, departments_text_list
+from bot.util.alert_service import compare_data
 
 days = []
 start_time = []
@@ -58,68 +59,6 @@ def lxmlToDataframe(index, html, isTotal, mid_df):
         mid_df.loc[mid_df['subject_id'] == subject_ids[i],'department'] += ' {}'.format(departments[departments_text_list[index]])
     print('department id : {}'.format(departments[departments_text_list[index]]))
     return mid_df
-
-'''
-def setDepartments(df):
-  
-  #전인교육원에 속하는지 여부를 표시하기 위한 함수
-  #해당없음 : 0
-  #공통필수 : 1
-  #공통선택 : 2
-  #자유선택 : 3
-  #전공입문 : 4
-  
-  print('Sub Crawling start')
-  for idx, department in enumerate(departments_text_list):
-    start = time.time()
-    print('------------------------')
-    print('Processing step [ {} / 56 ]'.format(idx+2))
-    driver = webdriver.Chrome(executable_path=driver_path, options=options)
-    driver.get(target_url)
-    driver.implicitly_wait(30)
-    print('Entering Target Page...')
-    
-    department_xpath = '//*[@id="{}"]'.format(departments[departments_text_list[idx]])
-    
-    # 대분류 Form 클릭
-    sleep(0.5)
-    driver.find_element_by_xpath(searchOption['대분류']).click()
-
-    # 학부 클릭
-    sleep(0.5)
-    driver.find_element_by_xpath(searchOption['학부']).click()
-    
-    # 배경 클릭
-    sleep(0.5)
-    driver.find_element_by_xpath(searchOption['배경']).click()
-
-    # 소분류 Form 클릭
-    sleep(0.5)
-    driver.find_element_by_xpath(searchOption['소분류']).click()
-    
-    # 소분류 선택 (전인교육원)
-    sleep(0.5)
-    driver.find_element_by_xpath(department_xpath).click()
-
-    # 검색 클릭
-    sleep(1.0)
-    driver.find_element_by_xpath(searchOption['검색']).click()
-    
-    print('Resource fetching...')
-    element = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, contentTable)))
-    print('Resource fetching done')
-    print('Saving data...')
-    
-    html = driver.page_source
-    df = lxmlToDataframe(idx, html, isTotal=False, mid_df=df)
-    print("{} crawling done".format(departments_text_list[idx]))
-    print("WorkingTime: {} sec".format(time.time()-start))
-    driver.close()
-    sleep(1)
-  
-  return df
-'''
-
 
 def split_day_time_classroom(x):
     arr = x.split(" ")
@@ -272,6 +211,10 @@ def Crawler():
   # 몇가지 컬럼 전처리
   result_df_ = preprocessor(result_df)
   
+  # alert_service
+  compare_data(result_df_)
+  
+  '''
   # 소분류(학부) 컬럼을 위한 추가 크롤링
   total_result_table = set_departments(result_df_)
   
@@ -281,5 +224,6 @@ def Crawler():
   conn = engine.connect()
   total_result_table.to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
   conn.close()
+  '''
   print('Total Logic Done :)')
   return True

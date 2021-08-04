@@ -8,7 +8,7 @@ import time
 
 if __name__ == '__main__':
   start = time.time()
-  #Crawler()
+  Crawler()
   #department_crawler()
-  past_semester_crawler()
+  #past_semester_crawler()
   print("Total WorkingTime: {} sec".format(time.time()-start))
