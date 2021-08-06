@@ -12,11 +12,12 @@ def send_mail(res_list):
 
 def make_changed_data_list(crawled_df, db_df):
   res_list = []
+  #new_subject_ids = crawled_df['subject_id'][~crawled_df['subject_id'].isin(db_df['subject_id'])].values.tolist()
+  crawled_df_drop_indice = crawled_df['subject_id'][~crawled_df['subject_id'].isin(db_df['subject_id'])].index.values.tolist()
+  crawled_df = crawled_df.drop(crawled_df_drop_indice).reset_index(drop=True)
   
-  if len(db_df) < len(crawled_df):
-    new_subject_ids = crawled_df['subject_id'][~crawled_df['subject_id'].isin(db_df['subject_id'])].values.tolist()
-    indice = crawled_df['subject_id'][~crawled_df['subject_id'].isin(db_df['subject_id'])].index.values.tolist()
-    crawled_df = crawled_df.drop(indice).reset_index(drop=True)
+  db_df_drop_indice = db_df['subject_id'][~db_df['subject_id'].isin(crawled_df['subject_id'])].index.values.tolist()
+  db_df = db_df.drop(db_df_drop_indice).reset_index(drop=True)
   
   total_length = len(db_df.compare(crawled_df))
   for row_idx in range(total_length):
