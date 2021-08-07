@@ -1,5 +1,5 @@
 from typing import final
-from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI
+from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI, MYSQL_DATABASE_TEST_URI, server_driver_path
 from selenium import webdriver
 from time import sleep
 import time
@@ -121,7 +121,7 @@ def set_departments(df):
     print('Processing step [ {} / 56 ]'.format(idx+2))
     print('{} crawling start'.format(departments_text_list[idx]))
     department_xpath = '//*[@id="{}"]'.format(departments[departments_text_list[idx]])
-    driver = webdriver.Chrome(executable_path=driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
     driver.get(target_url)
     driver.implicitly_wait(30)
     print('Entering Target Page...')
@@ -163,8 +163,19 @@ def set_departments(df):
     except:
       print('Resource fetching done. Nothing fetched.')
     finally:
-      print("WorkingTime: {} sec".format(time.time()-start))
       driver.close()
+      
+      # 중간 크롤링 결과 임시 테이블에 저장
+      print('Saving data to DB...')
+      engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
+      conn = engine.connect()
+      SQL = "SELECT * FROM s21_2_t"
+      db_df = pd.read_sql(SQL, conn) 
+      db_df.loc[:, 'departments'] = df.loc[:, 'departments']
+      db_df.to_sql(name='s21_2_t', if_exists='replace', con=conn, index=True, index_label='id')
+      conn.close()
+      print('Saving done')
+      print("WorkingTime: {} sec".format(time.time()-start))
       sleep(1)
   
   return df
@@ -175,7 +186,7 @@ def Crawler():
   '''
   print('Processing step [ 1 / 56 ]')
   print('Main Crawling start')
-  driver = webdriver.Chrome(executable_path=driver_path, options=options)
+  driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
   driver.get(target_url)
   driver.implicitly_wait(30)
   print('Entering Target Page...')
@@ -211,19 +222,29 @@ def Crawler():
   # 몇가지 컬럼 전처리
   result_df_ = preprocessor(result_df)
   
-  # alert_service
-  compare_data(result_df_)
+  # 초반 크롤링 결과 임시 테이블에 저장
+  print('Saving data to DB...')
+  engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
+  conn = engine.connect()
+  result_df_.to_sql(name='s21_2_t', if_exists='replace', con=conn, index=True, index_label='id')
+  conn.close()
+  print('Saving done')
   
   '''
   # 소분류(학부) 컬럼을 위한 추가 크롤링
   total_result_table = set_departments(result_df_)
   
   print(' ')
-  print('Saving data to DB...')
+  print('Saving data to Main DB...')
   engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
   conn = engine.connect()
-  total_result_table.to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
+  SQL = "SELECT * FROM s21_2_t"
+  total_db = pd.read_sql(SQL, conn) 
+  total_db.to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
   conn.close()
+  
+    # alert_service
+  compare_data(result_df_)
   '''
   print('Total Logic Done :)')
   return True
