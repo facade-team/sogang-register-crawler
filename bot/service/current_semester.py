@@ -1,4 +1,3 @@
-from typing import final
 from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI, MYSQL_DATABASE_TEST_URI, server_driver_path
 from selenium import webdriver
 from time import sleep
@@ -171,7 +170,7 @@ def set_departments(df):
       conn = engine.connect()
       SQL = "SELECT * FROM s21_2_t"
       db_df = pd.read_sql(SQL, conn) 
-      db_df.loc[:, 'departments'] = df.loc[:, 'departments']
+      db_df.loc[:, 'department'] = df.loc[:, 'department']
       db_df.to_sql(name='s21_2_t', if_exists='replace', con=conn, index=True, index_label='id')
       conn.close()
       print('Saving done')
@@ -215,11 +214,6 @@ def Crawler():
   print('Initial Main Crawling done.')
   driver.close()
   
-  
-  # 전인교육원 셋팅을 위한 추가 크롤링
-  # result_df_ = setDepartments(result_df)
-  
-  
   # 몇가지 컬럼 전처리
   result_df_ = preprocessor(result_df)
   
@@ -231,7 +225,7 @@ def Crawler():
   conn.close()
   print('Saving done')
   
-  '''
+  
   # 소분류(학부) 컬럼을 위한 추가 크롤링
   total_result_table = set_departments(result_df_)
   
@@ -246,6 +240,6 @@ def Crawler():
   
     # alert_service
   compare_data(result_df_)
-  '''
+
   print('Total Logic Done :)')
   return True

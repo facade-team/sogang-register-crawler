@@ -87,7 +87,7 @@ def preprocessor(df):
   '''
   
   # 1. 학점 Int로 변형
-  df.loc[:, '학점'] = df.loc[:, '학점'].map(lambda x : int(float(x)))
+  df.loc[:, '학점'] = df.loc[:, '학점'].map(lambda x : int(float(x)) if x in ['1.0', '2.0', '3.0'] else 0)
   
   # 2. 수업 요일, 시작시간, 종료시간, 강의실 분리
   df['수업시간_강의실'].map(lambda x : split_day_time_classroom(x))
@@ -186,10 +186,21 @@ def set_departments(year_xpath, semester_xpath, department_text_list, department
     except:
       print('Resource fetching done. Nothing fetched.')
     finally:
-      print("WorkingTime: {} sec".format(time.time()-start))
       driver.close()
+      
+      # 중간 크롤링 결과 임시 테이블에 저장
+      print('Saving data to DB...')
+      engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
+      conn = engine.connect()
+      table_name = 's{}_{}_t'.format(year, semester)
+      SQL = "SELECT * FROM {}".format(table_name)
+      db_df = pd.read_sql(SQL, conn) 
+      db_df.loc[:, 'department'] = df.loc[:, 'department']
+      db_df.iloc[:, 1:].to_sql(name=table_name, if_exists='replace', con=conn, index=True, index_label='id')
+      conn.close()
+      print('Saving done')
+      print("WorkingTime: {} sec".format(time.time()-start))
       sleep(1)
-  
   return df
 
 def get_departments(html):
@@ -209,15 +220,14 @@ def get_departments(html):
   return department_text_list, department_id_list
 
 def Crawler():
-  year_list = ['20','21']
+  year_list = ['18','19']
   semester_list = ['1','s','2','w']
   
-  for i in range(4):
+  for i in range(8):
     global days
     global start_time
     global end_time
     global classrooms
-    i = i + 2
     
     days = []
     start_time = []
@@ -285,6 +295,16 @@ def Crawler():
     
     # 몇가지 컬럼 전처리
     result_df_ = preprocessor(result_df)
+    
+    # 초반 크롤링 결과 임시 테이블에 저장
+    print('Saving data to DB...')
+    engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
+    conn = engine.connect()
+    table_name = 's{}_{}_t'.format(year_list[i//4], semester_list[i%4])
+    result_df_.to_sql(name=table_name, if_exists='replace', con=conn, index=True, index_label='id')
+    conn.close()
+    print('Saving done')
+    
     # 소분류(학부) 컬럼을 위한 추가 크롤링
     total_result_table = set_departments(year_xpath, semester_xpath, department_text_list, department_id_list, year, semester, result_df_)
     
@@ -292,8 +312,11 @@ def Crawler():
     print('Saving data to DB...')
     engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
     conn = engine.connect()
-    table_name = 's{}_{}'.format(year_list[i//4], semester_list[i%4])
-    total_result_table.to_sql(name=table_name, if_exists='replace', con=engine, index=True, index_label='id')
+    
+    SQL = "SELECT * FROM {}".format(table_name)
+    total_db = pd.read_sql(SQL, conn)
+    total_table_name = 's{}_{}'.format(year_list[i//4], semester_list[i%4])
+    total_db.iloc[:, 1:].to_sql(name=total_table_name, if_exists='replace', con=engine, index=True, index_label='id')
     conn.close()
     print('s{}_{} Logic Done :)'.format(year_list[i//4], semester_list[i%4]))
     print("s{}_{} WorkingTime: {} sec".format(year_list[i//4], semester_list[i%4], time.time()-start))
