@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from bot.util.departments import years, semesters
 from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI,server_driver_path
 from selenium import webdriver
