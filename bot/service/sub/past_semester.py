@@ -1,5 +1,5 @@
 from bot.util.departments import years, semesters
-from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI
+from bot.config import driver_path, target_url, options, MYSQL_DATABASE_URI,server_driver_path
 from selenium import webdriver
 from time import sleep
 import time
@@ -121,7 +121,7 @@ def set_departments(year_xpath, semester_xpath, department_text_list, department
     print('Processing step [ {} / {} ]'.format(idx+1, len(department_text_list)))
     print('{} crawling start'.format(department))
     department_xpath = '//*[@id="{}"]'.format(department_id_list[idx])
-    driver = webdriver.Chrome(executable_path=driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
     driver.get(target_url)
     print('Entering Target Page...')
     driver.implicitly_wait(30)
@@ -241,7 +241,7 @@ def Crawler():
     department_text_list = []
     department_id_list = []
     print('{} year, {} semester crawling start.'.format(year_list[i//4], semester_list[i%4]))
-    driver = webdriver.Chrome(executable_path=driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
     driver.get(target_url)
     driver.implicitly_wait(30)
     print('Entering Target Page...')
