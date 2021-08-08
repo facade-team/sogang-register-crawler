@@ -204,6 +204,7 @@ def Crawler():
   driver.find_element_by_xpath(searchOption['검색']).click()
 
   print('Resource fetching...')
+  print(contentTable)
   element = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, contentTable)))
   print('Resource fetching done')
   print('Saving data...')
