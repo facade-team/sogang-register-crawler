@@ -13,9 +13,19 @@ from bot.util.columns import columns
 from bot.util.departments import departments, departments_text_list
 from bot.util.alert_service import compare_data
 
-days = []
-start_time = []
-end_time = []
+#days = []
+#start_time = []
+#end_time = []
+# classrooms = []
+
+firstDays = []
+secondDays = []
+firstStartTime = []
+secondStartTime = []
+firstEndTime = []
+secondEndTime = []
+firstTotalTime = []
+secondTotalTime = []
 classrooms = []
 
 def lxmlToDataframe(index, html, isTotal, mid_df):
@@ -59,6 +69,8 @@ def lxmlToDataframe(index, html, isTotal, mid_df):
     print('department id : {}'.format(departments[departments_text_list[index]]))
     return mid_df
 
+'''
+# old version
 def split_day_time_classroom(x):
     arr = x.split(" ")
     if arr[0] == '' or arr[0] == '\xa0':
@@ -75,6 +87,60 @@ def split_day_time_classroom(x):
             classrooms.append(arr[2])
         else:
             classrooms.append('')
+'''
+
+def split_day_time_classroom(x):
+    arr = x.split(" / ")
+    if arr[0] == '' or arr[0] == '\xa0':
+        firstDays.append('')
+        secondDays.append('')
+        firstStartTime.append('')
+        secondStartTime.append('')
+        firstEndTime.append('')
+        secondEndTime.append('')
+        firstTotalTime.append('')
+        secondTotalTime.append('')
+        classrooms.append('')
+    else:
+        if len(arr) == 2:
+            arr1 = arr[0].split(' ')
+            arr2 = arr[1].split(' ')
+            firstDays.append(arr1[0])
+            secondDays.append(arr2[0])
+            
+            firstTotalTime.append(arr1[1])
+            secondTotalTime.append(arr2[1])
+            
+            firstStartTime.append(arr1[1].split('~')[0])
+            firstEndTime.append(arr1[1].split('~')[1])
+            
+            secondStartTime.append(arr2[1].split('~')[0])
+            secondEndTime.append(arr2[1].split('~')[1])
+            
+            if len(arr2) == 3 and arr2[2] != '':
+                classrooms.append(arr2[2])
+            else:
+                classrooms.append('')
+            
+        else:
+            arr = x.split(' ')
+            firstDays.append(arr[0])
+            secondDays.append(arr[0])
+            
+            firstTotalTime.append(arr[1])
+            secondTotalTime.append(arr[1])
+            
+            firstStartTime.append(arr[1].split('~')[0])
+            firstEndTime.append(arr[1].split('~')[1])
+            
+            secondStartTime.append(arr[1].split('~')[0])
+            secondEndTime.append(arr[1].split('~')[1])
+            
+            if len(arr) == 3 and arr[2] != '':
+                classrooms.append(arr[2])
+            else:
+                classrooms.append('')
+
 
 def preprocessor(df):
   '''
@@ -90,9 +156,25 @@ def preprocessor(df):
   
   # 2. 수업 요일, 시작시간, 종료시간, 강의실 분리
   df['수업시간_강의실'].map(lambda x : split_day_time_classroom(x))
-  df['요일'] = days
-  df['시작시간'] = start_time
-  df['종료시간'] = end_time
+  # old version
+  #df['요일'] = days
+  #df['시작시간'] = start_time
+  #df['종료시간'] = end_time
+  #df['강의실'] = classrooms
+  
+  # new version
+  df['요일1'] = firstDays
+  df['요일2'] = secondDays
+
+  df['시간1'] = firstTotalTime
+  df['시간2'] = secondTotalTime
+
+  df['시작시간1'] = firstStartTime
+  df['종료시간1'] = firstEndTime
+
+  df['시작시간2'] = secondStartTime
+  df['종료시간2'] = secondEndTime
+
   df['강의실'] = classrooms
   
   # 3. 대면 여부 추가
@@ -120,7 +202,7 @@ def set_departments(df):
     print('Processing step [ {} / 56 ]'.format(idx+2))
     print('{} crawling start'.format(departments_text_list[idx]))
     department_xpath = '//*[@id="{}"]'.format(departments[departments_text_list[idx]])
-    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=driver_path, options=options)
     driver.get(target_url)
     driver.implicitly_wait(30)
     print('Entering Target Page...')
@@ -171,7 +253,7 @@ def set_departments(df):
       SQL = "SELECT * FROM s21_2_t"
       db_df = pd.read_sql(SQL, conn) 
       db_df.loc[:, 'department'] = df.loc[:, 'department']
-      db_df.to_sql(name='s21_2_t', if_exists='replace', con=conn, index=True, index_label='id')
+      db_df.iloc[:, 1:].to_sql(name='s21_2_t', if_exists='replace', con=conn, index=True, index_label='id')
       conn.close()
       print('Saving done')
       print("WorkingTime: {} sec".format(time.time()-start))
@@ -185,7 +267,7 @@ def Crawler():
   '''
   print('Processing step [ 1 / 56 ]')
   print('Main Crawling start')
-  driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
+  driver = webdriver.Chrome(executable_path=driver_path, options=options)
   driver.get(target_url)
   driver.implicitly_wait(30)
   print('Entering Target Page...')
@@ -216,7 +298,7 @@ def Crawler():
   
   # 몇가지 컬럼 전처리
   result_df_ = preprocessor(result_df)
-  
+  '''
   # 초반 크롤링 결과 임시 테이블에 저장
   print('Saving data to DB...')
   engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
@@ -235,10 +317,10 @@ def Crawler():
   conn = engine.connect()
   SQL = "SELECT * FROM s21_2_t"
   total_db = pd.read_sql(SQL, conn) 
-  total_db.to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
+  total_db.iloc[:,1:].to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
   conn.close()
-  
-    # alert_service
+  '''
+  # alert_service
   compare_data(result_df_)
 
   print('Total Logic Done :)')

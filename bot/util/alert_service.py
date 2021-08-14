@@ -21,7 +21,7 @@ def search_user_subject_table():
 
 def send_mail(res_list):
   print(res_list)
-  print(len(res_list))
+  print('Changed data length : '.format(len(res_list)))
   u_s_list = search_user_subject_table()
   
   email_list = []
@@ -53,6 +53,7 @@ def make_changed_data_list(crawled_df, db_df):
       index_length = len(db_df.compare(crawled_df).iloc[row_idx,:][db_df.compare(crawled_df).iloc[row_idx,:].notna()].index) // 2
       subject_id = db_df.loc[row_idx, 'subject_id']
       suject_name = db_df.loc[row_idx, '과목명']
+      professor_name = db_df.loc[row_idx, '교수진']
       data_list = []
       for diff_idx in range(index_length):
           column_name = db_df.compare(crawled_df).iloc[row_idx,:][db_df.compare(crawled_df).iloc[row_idx,:].notna()].index[diff_idx*2][0]
@@ -73,6 +74,7 @@ def make_changed_data_list(crawled_df, db_df):
       res_elem = {
           'subject_id' : subject_id,
           'subject_name' : suject_name,
+          'professor_name' : professor_name,
           'data' : data_list
       }
       res_list.append(res_elem)

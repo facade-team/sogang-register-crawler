@@ -36,11 +36,11 @@ def lxml_to_dataframe(year, semester, html, df):
   return df
 
 def Crawler():
-  year_list = ['20','21']
+  year_list = ['18','19','20','21']
   semester_list = ['1','s','2','w']
   df = pd.DataFrame()
   
-  for i in range(7):
+  for i in range(15):
     print('{} year, {} semester crawling start.'.format(year_list[i//4], semester_list[i%4]))
     driver = webdriver.Chrome(executable_path=driver_path, options=options)
     driver.get(target_url)

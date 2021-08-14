@@ -122,7 +122,7 @@ def set_departments(year_xpath, semester_xpath, department_text_list, department
     print('Processing step [ {} / {} ]'.format(idx+1, len(department_text_list)))
     print('{} crawling start'.format(department))
     department_xpath = '//*[@id="{}"]'.format(department_id_list[idx])
-    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=driver_path, options=options)
     driver.get(target_url)
     print('Entering Target Page...')
     driver.implicitly_wait(30)
@@ -221,14 +221,16 @@ def get_departments(html):
   return department_text_list, department_id_list
 
 def Crawler():
-  year_list = ['18','19']
+  year_list = ['19']
   semester_list = ['1','s','2','w']
   
-  for i in range(8):
+  for i in range(1):
     global days
     global start_time
     global end_time
     global classrooms
+    
+    i = i +3
     
     days = []
     start_time = []
@@ -242,7 +244,7 @@ def Crawler():
     department_text_list = []
     department_id_list = []
     print('{} year, {} semester crawling start.'.format(year_list[i//4], semester_list[i%4]))
-    driver = webdriver.Chrome(executable_path=server_driver_path, options=options)
+    driver = webdriver.Chrome(executable_path=driver_path, options=options)
     driver.get(target_url)
     driver.implicitly_wait(30)
     print('Entering Target Page...')
