@@ -1,6 +1,6 @@
 import pandas as pd
 import pymysql
-from bot.config import host_name, username, password, database_name
+from bot.config import host_name, username, password, database_name, MYSQL_DATABASE_URI
 from sqlalchemy import create_engine
 from bot.util.mailer_service import mail_sender
 
@@ -8,7 +8,7 @@ query_cols = '학년도, 학기, 소속, 학과, 과목번호, 분반, 과목명
 query_cols_list = query_cols.split(', ')
 
 def search_user_subject_table():
-  engine = create_engine('mysql+pymysql://user:password@docker-mysql-test.cpabptw8fwxo.us-east-2.rds.amazonaws.com:3306/sogang_register?charset=utf8', encoding='utf-8')
+  engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
   conn = engine.connect()
   SQL = "SELECT * FROM user_subject"
   r = conn.execute("SELECT * FROM user_subject")
