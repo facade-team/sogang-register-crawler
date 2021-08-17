@@ -150,9 +150,10 @@ def preprocessor(df):
   3. 대면 여부 추가
   4. 강의 언어 추가
   '''
-  
+
   # 1. 학점 Int로 변형
-  df.loc[:, '학점'] = df.loc[:, '학점'].map(lambda x : int(float(x)))
+  #df.loc[:, '학점'] = df.loc[:, '학점'].map(lambda x : int(float(x)))
+  df.loc[:, '학점'] = df.loc[:, '학점'].map(lambda x : int(float(x)) if x in ['1.0', '2.0', '3.0'] else 0)
   
   # 2. 수업 요일, 시작시간, 종료시간, 강의실 분리
   df['수업시간_강의실'].map(lambda x : split_day_time_classroom(x))
@@ -191,6 +192,9 @@ def preprocessor(df):
   df.loc[:, '비고'] = df['비고'].map(lambda x: x.replace("[대면]", ""))
   df.loc[:, '비고'] = df['비고'].map(lambda x: x.replace("[비대면]", ""))
   df.loc[:, '비고'] = df['비고'].map(lambda x: x[1:] if len(x) > 0 and x[0] == ' ' else x)
+  
+  #6. updatedAt 추가
+  df['updated_at'] = time.strftime('%Y년 %m월 %d일 %H시 %M분', time.localtime(time.time()))
   return df
 
 
@@ -265,6 +269,7 @@ def Crawler():
   '''
   학부 전체 테이블에 대해서 모든 정보를 크롤링 하는 함수
   '''
+  '''
   print('Processing step [ 1 / 56 ]')
   print('Main Crawling start')
   driver = webdriver.Chrome(executable_path=driver_path, options=options)
@@ -298,7 +303,7 @@ def Crawler():
   
   # 몇가지 컬럼 전처리
   result_df_ = preprocessor(result_df)
-  '''
+
   # 초반 크롤링 결과 임시 테이블에 저장
   print('Saving data to DB...')
   engine = create_engine(MYSQL_DATABASE_URI, encoding='utf-8')
@@ -310,6 +315,8 @@ def Crawler():
   
   # 소분류(학부) 컬럼을 위한 추가 크롤링
   total_result_table = set_departments(result_df_)
+  '''
+  
   
   print(' ')
   print('Saving data to Main DB...')
@@ -320,8 +327,10 @@ def Crawler():
   total_db.iloc[:,1:].to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
   conn.close()
   '''
+
   # alert_service
   compare_data(result_df_)
+  '''
 
   print('Total Logic Done :)')
   return True
