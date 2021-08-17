@@ -269,7 +269,7 @@ def Crawler():
   '''
   학부 전체 테이블에 대해서 모든 정보를 크롤링 하는 함수
   '''
-  '''
+  
   print('Processing step [ 1 / 56 ]')
   print('Main Crawling start')
   driver = webdriver.Chrome(executable_path=driver_path, options=options)
@@ -315,7 +315,7 @@ def Crawler():
   
   # 소분류(학부) 컬럼을 위한 추가 크롤링
   total_result_table = set_departments(result_df_)
-  '''
+  
   
   
   print(' ')
@@ -326,11 +326,11 @@ def Crawler():
   total_db = pd.read_sql(SQL, conn) 
   total_db.iloc[:,1:].to_sql(name='s21_2', if_exists='replace', con=engine, index=True, index_label='id')
   conn.close()
-  '''
+  
 
   # alert_service
   compare_data(result_df_)
-  '''
+
 
   print('Total Logic Done :)')
   return True
